@@ -23,10 +23,11 @@
  */
 
 
-import hlxReader from 'hlx-file-reader';
-import mcpspi from 'mcp-spi-adc';
-import gpio from 'rpi-gpio';
+//import mcpspi from 'mcp-spi-adc';
+//import gpio from 'rpi-gpio';
 import speaker from "speaker";
+
+import { Station, StreamProtocol } from "./Libraries/ecma-station/ecma-station.mjs";
 
 
 const configFile = "./config.js";
@@ -35,7 +36,7 @@ const configFile = "./config.js";
  * The next constants should be moved into the config file.
  */
 
-dials = {
+const dials = {
     tone: {
         min: 100,
         max: 900,
@@ -55,35 +56,35 @@ dials = {
     }
 };
 
-switches = {
+const switches = {
     power: {
         ioPin: 7,
         onState: true
     }
 }
 
-stations = {
+const stations = {
     camfm: {
         frequencyMin: 90,
         frequencyMax: 95,
-        type: "hls",
+        type: StreamProtocol.ICY,
         url: "https://stream.camfm.co.uk/camfm"
     },
     pvfm3: {
         frequencyMin: 80,
         frequencyMax: 85,
-        type: "hls",
+        type: StreamProtocol.ICY,
         url: "https://dj.bronyradio.com/pvfmfree.ogg"
     }
 };
 
-defaultStation = "static";
+const defaultStation = "static";
 
 /**
  * Al outputs will be played simultaneously.
  * Currently, there's no latency compensation implemented.
  */
-audioOutputs = {
+const audioOutputs = {
     speaker: {
         alsaDevice: "hw0,0",
         latency: 0,
@@ -93,7 +94,7 @@ audioOutputs = {
     }
 };
 
-dialServo = {
+const dialServo = {
     ioPin: 20
 }
 
@@ -101,3 +102,5 @@ dialServo = {
 /**
  * Do something useful:
  */
+
+var station = Station.from(stations.pvfm3);
