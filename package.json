@@ -5,13 +5,16 @@
   "main": "thewireless.mjs",
   "dependencies": {
     "ogg": "github:mo-g/node-ogg",
+    "ecma-iceclient": "github:mo-g/ecma-iceclient",
+    "get-random-values": "^2.0.0",
+    "lame": "github:mo-g/node-lame",
     "hlx-file-reader": "0.0.14",
-    "icy": "^2.1.0",
     "mcp-spi-adc": "^3.2.0",
     "speaker-arm64": "^0.5.2",
-    "vorbis": "github:mo-g/node-vorbis"
+    "vorbis": "github:mo-g/node-vorbis",
+    "memorystream": "^0.3.1",
+    "wav": "^1.0.2"
   },
-  "devDependencies": {},
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
