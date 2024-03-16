@@ -94,4 +94,11 @@ class HLSStation extends Station {
     }
 }
 
-export { StreamProtocol, Station, NullOutput };
+
+class Static extends Station {
+    constructor ({url = ""} = {}){
+        super({url: url})
+    }
+}
+
+export { StreamProtocol, Station, NullOutput, Static };

@@ -1,8 +1,8 @@
 {
-  "name": "1950called",
+  "name": "theWireless",
   "version": "0.0.1",
   "description": "A simple radio client intended for use on a Pi with analogue controls connected through MCP3x0x ADC's.",
-  "main": "1950called.mjs",
+  "main": "thewireless.mjs",
   "dependencies": {
     "@suldashi/lame": "^1.2.5",
     "hlx-file-reader": "0.0.14",
@@ -20,7 +20,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/mo-g/1950calleditwantsitsradioback.git"
+    "url": "git+https://github.com/mo-g/thewireless.git"
   },
   "keywords": [
     "radio",
@@ -30,7 +30,7 @@
   "author": "mo-g",
   "license": "AGPL-3.0",
   "bugs": {
-    "url": "https://github.com/mo-g/1950calleditwantsitsradioback/issues"
+    "url": "https://github.com/mo-g/thewireless/issues"
   },
-  "homepage": "https://github.com/mo-g/1950calleditwantsitsradioback#readme"
+  "homepage": "https://github.com/mo-g/thewireless#readme"
 }
