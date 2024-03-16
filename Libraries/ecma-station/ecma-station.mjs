@@ -20,7 +20,7 @@ import icyClient from 'icy';
 import hlxFileReader from 'hlx-file-reader';
 import { OggVorbisDecoder } from '@wasm-audio-decoders/ogg-vorbis';
 import fs from 'fs';
-import speaker from 'speaker-arm64';
+import Speaker from 'speaker-arm64';
 
 const oggDecoder = new OggVorbisDecoder();
 await oggDecoder.ready;
