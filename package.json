@@ -8,7 +8,7 @@
     "icy": "^2.1.0",
     "mcp-spi-adc": "^3.2.0",
     "ogg": "git+https://github.com/radulov/node-ogg.git#cfe8ac9027bcbd00aeb6204f38a04317a0294123",
-    "speaker-arm64": "^0.5.2"
+    "speaker-arm64": "^0.5.2",
     "node-vorbis": "git+https://github.com/filiptc/node-vorbis.git#ddd2280a902059d6a59728fb1ffd7e4a0a11195d"
   },
   "devDependencies": {},
