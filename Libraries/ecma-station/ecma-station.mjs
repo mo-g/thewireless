@@ -90,7 +90,7 @@ class ICYStation extends Station {
         // log any "metadata" events that happen
         response.on('metadata', this.parseMetadata);
         this.decoder.decode(response)
-            .then((result) => this.output.write(result.channelData[0]));
+            .then((result) => this.output.write(new Buffer.from(result.channelData[0])));
     }
 
     parseMetadata = (metadata) => {
