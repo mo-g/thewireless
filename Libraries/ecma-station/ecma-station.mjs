@@ -1,6 +1,6 @@
 /**
  * ecma-station, a class to represent internet radio stations in ECMAScript.
- * Copyright (C) 2023 mo-g
+ * Copyright (C) 2023-24 mo-g
  * 
  * ecma-station is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -21,7 +21,7 @@ import hlxFileReader from 'hlx-file-reader';
 import vorbis from 'vorbis';
 import ogg from 'ogg';
 import fs from 'fs';
-import speaker from 'speaker';
+import Speaker from 'speaker-arm64';
 
 
 const StreamProtocol = {
@@ -73,7 +73,7 @@ class ICYStation extends Station {
             this.decoder.on('stream', function (stream) {
                 var vd = new vorbis.Decoder();
                 vd.on('format', function (format) {
-                    vd.pipe(new speaker());
+                    vd.pipe(new Speaker());
                 });
                 stream.pipe(vd);
             });
@@ -94,4 +94,11 @@ class HLSStation extends Station {
     }
 }
 
-export { StreamProtocol, Station, NullOutput };
+
+class Static extends Station {
+    constructor ({url = ""} = {}){
+        super({url: url})
+    }
+}
+
+export { StreamProtocol, Station, NullOutput, Static };
