@@ -25,7 +25,7 @@
 
 //import mcpspi from 'mcp-spi-adc';
 //import gpio from 'rpi-gpio';
-import speaker from "speaker";
+import speaker from "speaker-arm64";
 
 import { Station, StreamProtocol, Static } from "./Libraries/ecma-station/ecma-station.mjs";
 
