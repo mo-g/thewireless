@@ -1,16 +1,15 @@
 {
-  "name": "theWireless",
+  "name": "thewireless",
   "version": "0.0.1",
   "description": "A simple radio client intended for use on a Pi with analogue controls connected through MCP3x0x ADC's.",
   "main": "thewireless.mjs",
   "dependencies": {
+    "@wasm-audio-decoders/ogg-vorbis": "^0.1.15",
     "hlx-file-reader": "0.0.14",
     "icy": "^2.1.0",
     "mcp-spi-adc": "^3.2.0",
-    "speaker-arm64": "^0.5.2",
-    "audio-decode": "^2.2.0"
+    "speaker-arm64": "^0.5.2"
   },
-  "devDependencies": {},
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },

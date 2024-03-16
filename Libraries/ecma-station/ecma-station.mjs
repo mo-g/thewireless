@@ -18,11 +18,12 @@
 
 import icyClient from 'icy';
 import hlxFileReader from 'hlx-file-reader';
-import vorbis from 'node-vorbis';
-import ogg from 'ogg';
+import { OggVorbisDecoder } from '@wasm-audio-decoders/ogg-vorbis';
 import fs from 'fs';
 import speaker from 'speaker-arm64';
 
+oggDecoder = new OggVorbisDecoder();
+await oggDecoder.ready;
 
 const StreamProtocol = {
     ICY: "Uses the ShoutCAST ICY Protocol",
@@ -69,6 +70,12 @@ class ICYStation extends Station {
         
         if (response.headers['content-type'] == 'application/ogg') {
             console.log("VORBIS Stream");
+            this.decoder = oggDecoder
+            this.speaker = new Speaker();
+            
+            /*
+            Legacy code for node-vorbis which is broken on ARM
+            
             this.decoder = new ogg.Decoder();
             this.decoder.on('stream', function (stream) {
                 var vd = new vorbis.Decoder();
@@ -76,11 +83,12 @@ class ICYStation extends Station {
                     vd.pipe(new speaker());
                 });
                 stream.pipe(vd);
-            });
+            });*/
         }
         // log any "metadata" events that happen
         response.on('metadata', this.parseMetadata);
-        response.pipe(this.decoder);
+        this.decoder.decode(response)
+            .then((result) => result.pipe(this.speaker));
     }
 
     parseMetadata = (metadata) => {
