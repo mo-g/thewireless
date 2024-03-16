@@ -18,10 +18,10 @@
 
 import icyClient from 'icy';
 import hlxFileReader from 'hlx-file-reader';
-import vorbis from 'vorbis';
+import vorbis from 'node-vorbis';
 import ogg from 'ogg';
 import fs from 'fs';
-import speaker from 'speaker';
+import speaker from 'speaker-arm64';
 
 
 const StreamProtocol = {
