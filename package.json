@@ -6,11 +6,9 @@
   "dependencies": {
     "@suldashi/lame": "^1.2.5",
     "hlx-file-reader": "0.0.14",
-    "icecast": "^1.3.1",
     "icy": "^2.1.0",
     "mcp-spi-adc": "^3.2.0",
-    "rpi-gpio": "^2.1.7",
-    "speaker": "^0.5.4",
+    "pigpio": "^3.3.1",
     "ogg": "git+https://github.com/radulov/node-ogg.git#cfe8ac9027bcbd00aeb6204f38a04317a0294123",
     "vorbis": "git+https://github.com/NSGolova/node-vorbis.git#bf5a2236757cbad7ef510ee391f4c4ecd16b608b"
   },
