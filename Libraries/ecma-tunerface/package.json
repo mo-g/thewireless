@@ -1,0 +1,27 @@
+{
+    "name": "ecma-tunerface",
+    "version": "0.0.1",
+    "description": "A class to represent an internet radio physical user interface in ECMAScript.",
+    "main": "ecma-tunerface.mjs",
+    "dependencies": {
+    },
+    "devDependencies": {},
+    "scripts": {
+      "test": "echo \"Error: no test specified\" && exit 1"
+    },
+    "repository": {
+      "type": "git",
+      "url": "git+https://github.com/mo-g/thewireless.git"
+    },
+    "keywords": [
+      "hls",
+      "shoutcast"
+    ],
+    "author": "mo-g",
+    "license": "AGPL-3.0",
+    "bugs": {
+      "url": "https://github.com/mo-g/thewireless/issues"
+    },
+    "homepage": "https://github.com/mo-g/thewireless#readme"
+  }
+  

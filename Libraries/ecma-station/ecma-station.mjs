@@ -1,6 +1,6 @@
 /**
  * ecma-station, a class to represent internet radio stations in ECMAScript.
- * Copyright (C) 2023 mo-g
+ * Copyright (C) 2023-24 mo-g
  * 
  * ecma-station is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
