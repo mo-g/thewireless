@@ -22,7 +22,7 @@ import { OggVorbisDecoder } from '@wasm-audio-decoders/ogg-vorbis';
 import fs from 'fs';
 import speaker from 'speaker-arm64';
 
-oggDecoder = new OggVorbisDecoder();
+const oggDecoder = new OggVorbisDecoder();
 await oggDecoder.ready;
 
 const StreamProtocol = {
