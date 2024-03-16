@@ -21,6 +21,7 @@ import hlxFileReader from 'hlx-file-reader';
 import { OggVorbisDecoder } from '@wasm-audio-decoders/ogg-vorbis';
 import fs from 'fs';
 import Speaker from 'speaker-arm64';
+import stream from "stream";
 
 const oggDecoder = new OggVorbisDecoder();
 await oggDecoder.ready;
@@ -61,6 +62,8 @@ class ICYStation extends Station {
 
         this.decoder = NullOutput
         this.output = NullOutput;
+        this.output = new stream.PassThrough();
+        this.output.pipe(new Speaker());
         icyClient.get(this.url, this.setupStream);
     }
 
@@ -71,7 +74,6 @@ class ICYStation extends Station {
         if (response.headers['content-type'] == 'application/ogg') {
             console.log("VORBIS Stream");
             this.decoder = oggDecoder
-            this.speaker = new Speaker();
             
             /*
             Legacy code for node-vorbis which is broken on ARM
@@ -88,7 +90,7 @@ class ICYStation extends Station {
         // log any "metadata" events that happen
         response.on('metadata', this.parseMetadata);
         this.decoder.decode(response)
-            .then((result) => result.pipe(this.speaker));
+            .then((result) => this.output.write(result));
     }
 
     parseMetadata = (metadata) => {
