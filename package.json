@@ -1,17 +1,17 @@
 {
   "name": "thewireless",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "A simple radio client intended for use on a Pi with analogue controls connected through MCP3x0x ADC's.",
   "main": "thewireless.mjs",
   "dependencies": {
     "ogg": "github:mo-g/node-ogg",
+    "lame": "github:mo-g/node-lame",
+    "vorbis": "github:mo-g/node-vorbis",
     "ecma-iceclient": "github:mo-g/ecma-iceclient",
     "get-random-values": "^2.0.0",
-    "lame": "github:mo-g/node-lame",
     "hlx-file-reader": "0.0.14",
     "mcp-spi-adc": "^3.2.0",
     "speaker-arm64": "^0.5.2",
-    "vorbis": "github:mo-g/node-vorbis",
     "memorystream": "^0.3.1",
     "wav": "^1.0.2"
   },

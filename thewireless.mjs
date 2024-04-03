@@ -30,7 +30,7 @@ import Speaker from "speaker-arm64";
 import { Station, StreamProtocol, Static } from "./Libraries/ecma-station/ecma-station.mjs";
 
 
-const configFile = "./config.js";
+const configFile = "./config.mjs";
 
 /**
  * These variables define your Wireless set. Modify as required.
