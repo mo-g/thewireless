@@ -73,6 +73,18 @@ const stations = {
         frequencyMax: 85,
         type: StreamProtocol.ICY,
         url: "https://dj.bronyradio.com/pvfmfree.ogg"
+    },
+    monstro: {
+        type: StreamProtocol.ICY,
+        url: "https:\/\/radio.dripfeed.net\/listen\/monstromental\/radio.mp3"
+    },
+    esr: {
+        type: StreamProtocol.ICY,
+        url: "https://streamer.radio.co/s2c3cc784b/listen"
+    },
+    test: {
+        type: StreamProtocol.ICY,
+        url: "http://firewall.pulsradio.com"
     }
 };
 
@@ -99,4 +111,6 @@ const dialServo = {
  * Do something useful:
  */
 
-var station = Station.from(stations.pvfm3);
+var station = Station.from(stations.esr);
+
+//var interStation = new Static();
