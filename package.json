@@ -1,18 +1,15 @@
 {
-  "name": "1950called",
+  "name": "thewireless",
   "version": "0.0.1",
   "description": "A simple radio client intended for use on a Pi with analogue controls connected through MCP3x0x ADC's.",
-  "main": "1950called.mjs",
+  "main": "thewireless.mjs",
   "dependencies": {
-    "@suldashi/lame": "^1.2.5",
+    "ogg": "github:mo-g/node-ogg",
     "hlx-file-reader": "0.0.14",
-    "icecast": "^1.3.1",
     "icy": "^2.1.0",
     "mcp-spi-adc": "^3.2.0",
-    "rpi-gpio": "^2.1.7",
-    "speaker": "^0.5.4",
-    "ogg": "git+https://github.com/radulov/node-ogg.git#cfe8ac9027bcbd00aeb6204f38a04317a0294123",
-    "vorbis": "git+https://github.com/NSGolova/node-vorbis.git#bf5a2236757cbad7ef510ee391f4c4ecd16b608b"
+    "speaker-arm64": "^0.5.2",
+    "vorbis": "github:mo-g/node-vorbis"
   },
   "devDependencies": {},
   "scripts": {
@@ -20,7 +17,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/mo-g/1950calleditwantsitsradioback.git"
+    "url": "git+https://github.com/mo-g/thewireless.git"
   },
   "keywords": [
     "radio",
@@ -30,7 +27,7 @@
   "author": "mo-g",
   "license": "AGPL-3.0",
   "bugs": {
-    "url": "https://github.com/mo-g/1950calleditwantsitsradioback/issues"
+    "url": "https://github.com/mo-g/thewireless/issues"
   },
-  "homepage": "https://github.com/mo-g/1950calleditwantsitsradioback#readme"
+  "homepage": "https://github.com/mo-g/thewireless#readme"
 }
