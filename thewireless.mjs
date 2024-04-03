@@ -25,45 +25,43 @@
 
 //import mcpspi from 'mcp-spi-adc';
 //import gpio from 'rpi-gpio';
-import speaker from "speaker";
+import Speaker from "speaker-arm64";
 
-import { Station, StreamProtocol } from "./Libraries/ecma-station/ecma-station.mjs";
+import { Station, StreamProtocol, Static } from "./Libraries/ecma-station/ecma-station.mjs";
 
 
 const configFile = "./config.js";
 
 /**
- * The next constants should be moved into the config file.
+ * These variables define your Wireless set. Modify as required.
  */
 
 const dials = {
     tone: {
-        min: 100,
-        max: 900,
-        channel: 2
-    },
-    volume: {
-        min: 50,
-        trigger: 150,
-        max: 900,
+        min: 0.01,
+        max: 1,
         channel: 0
     },
+    volume: {
+        min: 0.01,
+        trigger: 0.1,
+        max: 1,
+        channel: 2
+    },
     tuner: {
-        min: 100,
-        max: 900,
+        min: 0.01,
+        max: 1,
         channel: 1,
         integralDial: false
     }
 };
 
-const switches = {
-    power: {
-        ioPin: 7,
-        onState: true
-    }
-}
+const switches = {}
 
 const stations = {
+    default: {
+        type: Static
+    },
     camfm: {
         frequencyMin: 90,
         frequencyMax: 95,
@@ -77,8 +75,6 @@ const stations = {
         url: "https://dj.bronyradio.com/pvfmfree.ogg"
     }
 };
-
-const defaultStation = "static";
 
 /**
  * Al outputs will be played simultaneously.
@@ -95,7 +91,7 @@ const audioOutputs = {
 };
 
 const dialServo = {
-    ioPin: 20
+    ioPin: 7
 }
 
 
