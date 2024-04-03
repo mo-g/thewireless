@@ -26,8 +26,8 @@ const switches = {}
 
 const stations = {
     default: {
-        type: static
-    }
+        type: "whiteNoise"
+    },
     camfm: {
         frequencyMin: 90,
         frequencyMax: 95,
