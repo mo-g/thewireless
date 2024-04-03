@@ -22,12 +22,14 @@ import vorbis from 'vorbis';
 import ogg from 'ogg';
 import lame from 'lame';
 import fs from 'fs';
-import Speaker from 'speaker-arm64';
 import getRandomValues from 'get-random-values';
 import { Readable } from 'stream';
 import { FileWriter } from 'wav';
 import MemoryStream from 'memorystream';
+import BitCrusher from 'pcm-bitdepth-converter';
 
+
+const Converter = BitCrusher.From32To16Bit;
 
 const StreamProtocol = {
     ICY: "Uses the ShoutCAST ICY Protocol",
@@ -63,8 +65,12 @@ class ICYStation extends Station {
     constructor ({url = ""} = {}){
         super({url: url})
 
-        this.decoder = NullOutput
+        this.decoderIn = NullOutput
+        this.decoderOut = NullOutput
         this.output = NullOutput;
+        this.source = null
+        this.ready = false;
+        this.metadata = null;
         console.log("Streaming from:", url)
         icyClient.get(this.url, this.setupStream);
     }
@@ -87,25 +93,27 @@ class ICYStation extends Station {
         } else {
             var codec = uniformHeaders['content-type'];
         }
-        
+        var decoderGlobal = null;
         switch (codec) {
             case "application/ogg":
                 console.log("VORBIS Stream");
-                this.decoder = new ogg.Decoder();
-                this.decoder.on('stream', function (stream) {
-                    var vd = new vorbis.Decoder();
-                    vd.on('format', function (format) {
-                        vd.pipe(new Speaker());
+                this.decoderIn = new ogg.Decoder();
+                this.decoderIn.on('stream', function (stream) {
+                    var vorbisDecoder = new vorbis.Decoder();
+                    vorbisDecoder.on('format', function (format) {
+                        var bitCrusher = new Converter();
+                        vorbisDecoder.pipe(bitCrusher);
+                        decoderGlobal = bitCrusher;
                     });
-                    stream.pipe(vd);
+                    stream.pipe(vorbisDecoder);
                 });
                 break;
             case "audio/mpeg":
                 console.log("MPEG1_3 Stream");
-                this.decoder = new lame.Decoder();
-                var decoder = this.decoder;
-                this.decoder.on('format', function (format) {
-                    decoder.pipe(new Speaker());
+                this.decoderIn = new lame.Decoder();
+                var lameDecoder = this.decoderIn;
+                lameDecoder.on('format', function (format) {
+                    decoderGlobal = lameDecoder;
                 });
                 break;
             case "audio/aacp":
@@ -113,13 +121,34 @@ class ICYStation extends Station {
             default:
                 throw "Unsupported CODEC:", codec;
         }
+
+        function awaitDecoder(parentObject) {
+            if (decoderGlobal) {
+                parentObject.decoderOut = decoderGlobal;
+                parentObject.ready = true;
+            } else {
+                setTimeout(() => {
+                    awaitDecoder(parentObject);
+                }, 33);
+            }
+        };
+        awaitDecoder(this);
         // log any "metadata" events that happen
         response.on('metadata', this.parseMetadata);
-        response.pipe(this.decoder);
+        this.source = response;
+        this.source.pipe(this.decoderIn)
+    }
+
+    play (speaker) {
+        this.decoderOut.pipe(speaker);
+    }
+
+    stop () {
+        this.decoderOut.unpipe();
     }
 
     parseMetadata = (metadata) => {
-        console.log(metadata.toString());
+        this.metadata = metadata;
     }
 }
 
@@ -138,7 +167,6 @@ class Static {
     constructor (sampleRate = 44100) {
         this.sampleRate = sampleRate;
         this.stream = Readable.from(this.generateNoise());
-        this.stream.pipe(new Speaker());
 
     }
 
