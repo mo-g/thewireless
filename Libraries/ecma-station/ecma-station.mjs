@@ -23,10 +23,11 @@ import ogg from 'ogg';
 import lame from 'lame';
 import fs from 'fs';
 import getRandomValues from 'get-random-values';
-import { Readable } from 'stream';
+import { Readable, Transform } from 'stream';
 import { FileWriter } from 'wav';
 import MemoryStream from 'memorystream';
 import BitCrusher from 'pcm-bitdepth-converter';
+import Volume from 'pcm-volume';
 
 
 const Converter = BitCrusher.From32To16Bit;
@@ -38,13 +39,13 @@ const StreamProtocol = {
 
 const NullOutput = fs.createWriteStream('/dev/null');
 
-
 class Station {
     constructor ({url = ""} = {}) {
         if (!url) {
             throw "Null URL or URL not passed."
         }
         this.url = url;
+        this.volumeOut = new Volume();
     }
 
     static from (streamSpecs) {
@@ -125,6 +126,7 @@ class ICYStation extends Station {
         function awaitDecoder(parentObject) {
             if (decoderGlobal) {
                 parentObject.decoderOut = decoderGlobal;
+                parentObject.decoderOut.pipe(parentObject.volumeOut);
                 parentObject.ready = true;
             } else {
                 setTimeout(() => {
@@ -140,11 +142,16 @@ class ICYStation extends Station {
     }
 
     play (speaker) {
-        this.decoderOut.pipe(speaker);
+        this.volumeOut.pipe(speaker);
     }
 
     stop () {
-        this.decoderOut.unpipe();
+        this.volumeOut.unpipe();
+    }
+
+    set volume (value) {
+        this.volumeOut.setVolume(value);
+        return value;
     }
 
     parseMetadata = (metadata) => {
