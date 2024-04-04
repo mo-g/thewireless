@@ -13,6 +13,7 @@
     "memorystream": "^0.3.1",
     "ogg": "github:mo-g/node-ogg",
     "pcm-bitdepth-converter": "github:mo-g/pcm-bitdepth-converter",
+    "pcm-volume": "^1.0.0",
     "speaker-arm64": "^0.5.2",
     "vorbis": "github:mo-g/node-vorbis",
     "wav": "^1.0.2"
