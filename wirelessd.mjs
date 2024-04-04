@@ -101,7 +101,7 @@ const audioOutputs = {
 };
 
 const speakerSettings = {
-    channels: 2, bitDepth:16, sampleRate: 48000
+    channels: 2, bitDepth:16, sampleRate: 44100
 };
 
 const dialServo = {
@@ -133,6 +133,12 @@ apiService.get('/stations', (request, responder) => {
 
 apiService.get('/speaker', (request, responder) => {
     return responder.send(outputSpeaker);
+});
+
+apiService.get('/volume/:volume', (request, responder) => {
+    var volume = parseFloat(request.params.volume);
+    liveStations[liveStation].volume = volume;
+    return responder.send(true);
 });
 
 apiService.get('/stations/:station', (request, responder) => {

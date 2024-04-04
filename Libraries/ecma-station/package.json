@@ -1,6 +1,6 @@
 {
     "name": "ecma-station",
-    "version": "0.0.1",
+    "version": "0.1.0",
     "description": "A class to represent internet radio stations in ECMAScript.",
     "main": "ecma-station.mjs",
     "dependencies": {
@@ -11,7 +11,7 @@
     },
     "repository": {
       "type": "git",
-      "url": "git+https://github.com/mo-g/1950calleditwantsitsradioback.git"
+      "url": "git+https://github.com/mo-g/thewireless.git"
     },
     "keywords": [
       "hls",
@@ -20,8 +20,8 @@
     "author": "mo-g",
     "license": "AGPL-3.0",
     "bugs": {
-      "url": "https://github.com/mo-g/1950calleditwantsitsradioback/issues"
+      "url": "https://github.com/mo-g/thewireless/issues"
     },
-    "homepage": "https://github.com/mo-g/1950calleditwantsitsradioback#readme"
+    "homepage": "https://github.com/mo-g/thewireless#readme"
   }
   
