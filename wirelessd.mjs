@@ -1,18 +1,18 @@
 /**
- * 1950called, an internet radio client for upcycling with Pi.
+ * thewireless, an internet radio client for upcycling with Pi.
  * Copyright (C) 2023 mo-g
  * 
- * 1950called is free software: you can redistribute it and/or modify
+ * thewireless is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
  * the Free Software Foundation, version 3 of the License.
  * 
- * 1950called is distributed in the hope that it will be useful,
+ * thewireless is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  * 
  * You should have received a copy of the GNU General Public License
- * along with 1950called  If not, see <https://www.gnu.org/licenses/>.
+ * along with thewireless  If not, see <https://www.gnu.org/licenses/>.
  */
 
 /**
@@ -25,97 +25,28 @@
 
 //import mcpspi from 'mcp-spi-adc';
 //import gpio from 'rpi-gpio';
-import Speaker from "speaker-arm64";
 import express from 'express';
-import { Station, StreamProtocol, Static } from "./Libraries/ecma-station/ecma-station.mjs";
+import { Station, InternetStation, StreamProtocol} from "./Libraries/ecma-station/ecma-station.mjs";
+import { Dials, Switches, NeedleServo, Stations } from './config.mjs';
+import mpdapi from 'mpd-api';
 
+const apiPort = 1932; // Port on which thewireless listens for control commands.
 
-const configFile = "./config.mjs";
-const apiPort = 1932;
+// Settings for the default MPD player. Should be moved to config, and have support for multiple players added (without sync).
+const mpdConfig = {
+    path: "/run/mpd/socket"
+};
+
+const mpdInstance = await mpdapi.connect(mpdConfig);
 
 /**
- * These variables define your Wireless set. Modify as required.
+ * Load all stations. They don't take much resource loaded, and don't pull any audio from the server till you hit play.
  */
-
-const dials = {
-    tone: {
-        min: 0.01,
-        max: 1,
-        channel: 0
-    },
-    volume: {
-        min: 0.01,
-        trigger: 0.1,
-        max: 1,
-        channel: 2
-    },
-    tuner: {
-        min: 0.01,
-        max: 1,
-        channel: 1,
-        integralDial: false
-    }
-};
-
-const switches = {}
-
-const stations = {
-    static: {
-        type: StreamProtocol.Static
-    },
-    camfm: {
-        frequencyMin: 90,
-        frequencyMax: 95,
-        type: StreamProtocol.ICY,
-        url: "https://stream.camfm.co.uk/camfm"
-    },
-    pvfm3: {
-        frequencyMin: 80,
-        frequencyMax: 85,
-        type: StreamProtocol.ICY,
-        url: "https://dj.bronyradio.com/pvfmfree.ogg"
-    },
-    monstro: {
-        type: StreamProtocol.ICY,
-        url: "https:\/\/radio.dripfeed.net\/listen\/monstromental\/radio.mp3"
-    },
-    esr: {
-        type: StreamProtocol.ICY,
-        url: "https://streamer.radio.co/s2c3cc784b/listen"
-    },
-    test: {
-        type: StreamProtocol.ICY,
-        url: "http://firewall.pulsradio.com"
-    }
-};
-
-/**
- * Al outputs will be played simultaneously.
- * Currently, there's no latency compensation implemented.
- */
-const audioOutputs = {
-    speaker: {
-        alsaDevice: "hw0,0",
-        latency: 0,
-        channels: 1,
-        bitDepth: 16,
-        bitRate: 44100
-    }
-};
-
-const speakerSettings = {
-    channels: 2, bitDepth:16, sampleRate: 44100
-};
-
-const dialServo = {
-    ioPin: 7
-}
-
-const outputSpeaker = new Speaker(speakerSettings);
-
 var liveStations = {};
-for (const stationName of Object.keys(stations)) {
-    liveStations[stationName] = Station.from(stations[stationName]);
+for (const stationName of Object.keys(Stations)) {
+    console.log(stationName);
+    liveStations[stationName] = Station.from(Stations[stationName]);
+    liveStations[stationName].player = mpdInstance;
 };
 var liveStation = null;
 
@@ -130,28 +61,48 @@ apiService.get('/', (request, responder) => {
 });
 
 apiService.get('/stations', (request, responder) => {
-    return responder.send(Object.keys(stations));
-});
-
-
-apiService.get('/speaker', (request, responder) => {
-    return responder.send(outputSpeaker);
-});
-
-apiService.get('/volume/:volume', (request, responder) => {
-    var volume = parseFloat(request.params.volume);
-    liveStations[liveStation].volume = volume;
-    return responder.send(true);
+    return responder.send(Object.keys(liveStations));
 });
 
 apiService.get('/stations/:station', (request, responder) => {
     var station = request.params.station
-    if (station in stations) {
-        return responder.send(stations[station]);
+    if (station in liveStations) {
+        return responder.send(liveStations[station]);
     };
     console.log("Station", station, "not currently loaded.");
     responder.status(404);
     return responder.send("Station", station, "not known. Load /stations endpoint for current list.");
+});
+
+/*apiService.get('/stations/:station/:volume', (request, responder) => {
+    var station = request.params.station
+    if (!(station in liveStations)) {
+        console.log("Station", station, "not currently loaded.");
+        responder.status(404);
+        return responder.send("Station", station, "not known. Load /stations endpoint for current list.");
+    };
+    var volume = parseFloat(request.params.volume);
+    liveStations[station].volume = volume;
+    return responder.send(true);
+
+});*/
+
+apiService.get('/speaker', (request, responder) => {
+    return responder.send(mpdInstance);
+});
+
+apiService.get('/volume', (request, responder) => {
+    var volume = mpdInstance.api.playback.getvol()
+    return responder.send({"volume": volume});
+});
+
+apiService.get('/volume/:volume', (request, responder) => {
+    var volume = parseInt(request.params.volume);
+    if (volume >= 0 & volume <= 100) {
+
+    }
+    mpdInstance.api.playback.setvol(volume)
+    return responder.send(true);
 });
 
 /**
@@ -172,31 +123,26 @@ apiService.get('/play/:station', (request, responder) => {
         return responder.send("Station " + station + " not known. Load /stations endpoint for current list.");
     };
 
-    if (!(liveStations[station].ready)) {
-        responder.status(425);
-        return responder.send("Station " + station + " is not ready to play.");
-    };
-
     if (!(liveStation)) {
         liveStation = station;
-        liveStations[station].play(outputSpeaker);
+        liveStations[station].play();
     };
 
     if (liveStation == station) {
         return responder.send([true]);
     };
 
-    liveStations[liveStation].stop();
+    liveStations[liveStation].pause();
     liveStation = station;
-    return setTimeout((stationObject, speakerObject, responderObject) => {
-        stationObject.play(speakerObject);
+    return setTimeout((stationObject, responderObject) => {
+        stationObject.play();
         responderObject.send([true]);
-    }, 500, liveStations[station], outputSpeaker, responder);
+    }, 500, liveStations[station], responder);
 });
 
 apiService.get('/play', (request, responder) => {
     if (liveStation) {
-        liveStations[liveStation].play(outputSpeaker);
+        liveStations[liveStation].play();
         return responder.send([true]);
     }
     responder.status(404);
@@ -206,15 +152,15 @@ apiService.get('/play', (request, responder) => {
 /**
  * Stop playback
  */
-apiService.get('/stop', (request, responder) => {
+apiService.get('/pause', (request, responder) => {
     //responder.status(501)
-    liveStations[liveStation].stop();
+    liveStations[liveStation].pause();
     //liveStation = null;
     return responder.send(false);
 });
 
 apiService.listen(apiPort, () =>
-    console.log(`Combadge control REST API now active on TCP port ${apiPort}!`),
+    console.log(`Wireless control REST API now active on TCP port ${apiPort}!`),
 );
 
 
