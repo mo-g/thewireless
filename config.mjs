@@ -1,8 +1,10 @@
+import { StreamProtocol } from "./Libraries/ecma-station/ecma-station.mjs";
+
 /**
  * These variables define your Wireless set. Modify as required.
  */
 
-const dials = {
+const Dials = {
     tone: {
         min: 0.01,
         max: 1,
@@ -22,11 +24,15 @@ const dials = {
     }
 };
 
-const switches = {}
+const Switches = {}
 
-const stations = {
-    default: {
-        type: "whiteNoise"
+const NeedleServo = {
+    ioPin: 7
+}
+
+const Stations = {
+    static: {
+        type: StreamProtocol.Static
     },
     camfm: {
         frequencyMin: 90,
@@ -39,25 +45,20 @@ const stations = {
         frequencyMax: 85,
         type: StreamProtocol.ICY,
         url: "https://dj.bronyradio.com/pvfmfree.ogg"
+    },
+    monstro: {
+        type: StreamProtocol.ICY,
+        url: "https:\/\/radio.dripfeed.net\/listen\/monstromental\/radio.mp3"
+    },
+    esr: {
+        type: StreamProtocol.ICY,
+        url: "https://streamer.radio.co/s2c3cc784b/listen"
+    },
+    test: {
+        type: StreamProtocol.ICY,
+        url: "http://firewall.pulsradio.com"
     }
 };
 
-/**
- * Al outputs will be played simultaneously.
- * Currently, there's no latency compensation implemented.
- */
-const audioOutputs = {
-    speaker: {
-        alsaDevice: "hw0,0",
-        latency: 0,
-        channels: 1,
-        bitDepth: 16,
-        bitRate: 16000
-    }
-};
 
-const dialServo = {
-    ioPin: 7
-}
-
-export { dials, switches, stations, audioOutputs, dialServo }
+export { Dials, Switches, NeedleServo, Stations }

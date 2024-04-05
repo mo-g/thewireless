@@ -28,94 +28,25 @@
 import Speaker from "speaker-arm64";
 import express from 'express';
 import { Station, StreamProtocol, Static } from "./Libraries/ecma-station/ecma-station.mjs";
+import { Dials, Switches, NeedleServo, Stations } from './config.mjs';
 
 
-const configFile = "./config.mjs";
 const apiPort = 1932;
 
 /**
- * These variables define your Wireless set. Modify as required.
+ * Hardcoding speaker settings to avoid pain from mismatched sample rates, as we're not doing transcoding.
  */
-
-const dials = {
-    tone: {
-        min: 0.01,
-        max: 1,
-        channel: 0
-    },
-    volume: {
-        min: 0.01,
-        trigger: 0.1,
-        max: 1,
-        channel: 2
-    },
-    tuner: {
-        min: 0.01,
-        max: 1,
-        channel: 1,
-        integralDial: false
-    }
-};
-
-const switches = {}
-
-const stations = {
-    static: {
-        type: StreamProtocol.Static
-    },
-    camfm: {
-        frequencyMin: 90,
-        frequencyMax: 95,
-        type: StreamProtocol.ICY,
-        url: "https://stream.camfm.co.uk/camfm"
-    },
-    pvfm3: {
-        frequencyMin: 80,
-        frequencyMax: 85,
-        type: StreamProtocol.ICY,
-        url: "https://dj.bronyradio.com/pvfmfree.ogg"
-    },
-    monstro: {
-        type: StreamProtocol.ICY,
-        url: "https:\/\/radio.dripfeed.net\/listen\/monstromental\/radio.mp3"
-    },
-    esr: {
-        type: StreamProtocol.ICY,
-        url: "https://streamer.radio.co/s2c3cc784b/listen"
-    },
-    test: {
-        type: StreamProtocol.ICY,
-        url: "http://firewall.pulsradio.com"
-    }
-};
-
-/**
- * Al outputs will be played simultaneously.
- * Currently, there's no latency compensation implemented.
- */
-const audioOutputs = {
-    speaker: {
-        alsaDevice: "hw0,0",
-        latency: 0,
-        channels: 1,
-        bitDepth: 16,
-        bitRate: 44100
-    }
-};
-
 const speakerSettings = {
     channels: 2, bitDepth:16, sampleRate: 44100
 };
-
-const dialServo = {
-    ioPin: 7
-}
-
 const outputSpeaker = new Speaker(speakerSettings);
 
+/**
+ * Load all stations. They don't take much resource loaded, and don't pull any audio from the server till you hit play.
+ */
 var liveStations = {};
-for (const stationName of Object.keys(stations)) {
-    liveStations[stationName] = Station.from(stations[stationName]);
+for (const stationName of Object.keys(Stations)) {
+    liveStations[stationName] = Station.from(Stations[stationName]);
 };
 var liveStation = null;
 
@@ -130,9 +61,31 @@ apiService.get('/', (request, responder) => {
 });
 
 apiService.get('/stations', (request, responder) => {
-    return responder.send(Object.keys(stations));
+    return responder.send(Object.keys(liveStations));
 });
 
+apiService.get('/stations/:station', (request, responder) => {
+    var station = request.params.station
+    if (station in liveStations) {
+        return responder.send(liveStations[station]);
+    };
+    console.log("Station", station, "not currently loaded.");
+    responder.status(404);
+    return responder.send("Station", station, "not known. Load /stations endpoint for current list.");
+});
+
+apiService.get('/stations/:station/:volume', (request, responder) => {
+    var station = request.params.station
+    if (!(station in liveStations)) {
+        console.log("Station", station, "not currently loaded.");
+        responder.status(404);
+        return responder.send("Station", station, "not known. Load /stations endpoint for current list.");
+    };
+    var volume = parseFloat(request.params.volume);
+    liveStations[station].volume = volume;
+    return responder.send(true);
+
+});
 
 apiService.get('/speaker', (request, responder) => {
     return responder.send(outputSpeaker);
@@ -142,16 +95,6 @@ apiService.get('/volume/:volume', (request, responder) => {
     var volume = parseFloat(request.params.volume);
     liveStations[liveStation].volume = volume;
     return responder.send(true);
-});
-
-apiService.get('/stations/:station', (request, responder) => {
-    var station = request.params.station
-    if (station in stations) {
-        return responder.send(stations[station]);
-    };
-    console.log("Station", station, "not currently loaded.");
-    responder.status(404);
-    return responder.send("Station", station, "not known. Load /stations endpoint for current list.");
 });
 
 /**
