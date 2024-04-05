@@ -34,7 +34,8 @@ const Converter = BitCrusher.From32To16Bit;
 
 const StreamProtocol = {
     ICY: "Uses the ShoutCAST ICY Protocol",
-    HLS: "Uses the Apple HLS Protocol"
+    HLS: "Uses the Apple HLS Protocol",
+    Static: "Generates Pseudorandom White Noise"
 };
 
 const NullOutput = fs.createWriteStream('/dev/null');
@@ -55,6 +56,9 @@ class Station {
                 break;
             case StreamProtocol.HLS:
                 return new HLSStation({url: streamSpecs.url});
+                break;
+            case StreamProtocol.Static:
+                return new Static();
                 break;
             default:
                 throw "Unsupported protocol:", streamSpecs.type;
@@ -165,26 +169,53 @@ class HLSStation extends Station {
     }
 }
 
+
+/**
+ * The generator class that produces the readable for Static
+ */
+class WhiteNoise extends Readable {
+    constructor(sampleRate = 44100) {
+        super()
+        this.sampleRate = sampleRate;
+    }
+
+    _read(bytes) {
+        const buf = Buffer.alloc(bytes);
+        var chunk = buf.map(function () {return Math.random() * 255})
+        this.push(Buffer.from(chunk))
+    }
+
+
+}
+
 /**
  * This static noise generator will sit between stations!
  * 
  * Need to find a way to refill the stream on demand with more static.
  */
 class Static {
-    constructor (sampleRate = 44100) {
-        this.sampleRate = sampleRate;
-        this.stream = Readable.from(this.generateNoise());
-
+    constructor () {
+        this.source = new WhiteNoise();
+        this.volumeOut = new Volume();
+        this.source.pipe(this.volumeOut);
+        this.ready=true;
     }
 
-    generateNoise () {
-        var bufferSize = this.sampleRate * 5;
-        var output = new Int16Array(bufferSize);
-          
-        for (let i = 0; i < bufferSize; i++) {
-            output[i] = Math.random() * 32768 - 1;
-        }
-        return Buffer.from(output);
+    play (speaker) {
+        this.volumeOut.pipe(speaker);
+    }
+
+    stop () {
+        this.volumeOut.unpipe();
+    }
+
+    set volume (value) {
+        this.volumeOut.setVolume(value);
+        return value;
+    }
+
+    parseMetadata = (metadata) => {
+        this.metadata = metadata;
     }
 }
 

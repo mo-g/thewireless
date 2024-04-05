@@ -60,6 +60,9 @@ const dials = {
 const switches = {}
 
 const stations = {
+    static: {
+        type: StreamProtocol.Static
+    },
     camfm: {
         frequencyMin: 90,
         frequencyMax: 95,
