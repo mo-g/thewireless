@@ -157,7 +157,7 @@ apiService.get('/stop', (request, responder) => {
 });
 
 apiService.listen(apiPort, () =>
-    console.log(`Combadge control REST API now active on TCP port ${apiPort}!`),
+    console.log(`Wireless control REST API now active on TCP port ${apiPort}!`),
 );
 
 
