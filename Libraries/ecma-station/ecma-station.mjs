@@ -46,6 +46,7 @@ class Station {
             throw "Null URL or URL not passed."
         }
         this.url = url;
+        this.format = {};
         this.volumeOut = new Volume();
     }
 
@@ -64,12 +65,16 @@ class Station {
                 throw "Unsupported protocol:", streamSpecs.type;
         };
     }
+
+    toJSON () {
+        return {url: this.url, format: this.format};
+    }
 }
 
 class ICYStation extends Station {
     constructor ({url = ""} = {}){
         super({url: url})
-
+        this.format = {};
         this.decoderIn = NullOutput
         this.decoderOut = NullOutput
         this.output = NullOutput;
@@ -99,6 +104,7 @@ class ICYStation extends Station {
             var codec = uniformHeaders['content-type'];
         }
         var decoderGlobal = null;
+        var formatGlobal = null;
         switch (codec) {
             case "application/ogg":
                 console.log("VORBIS Stream");
@@ -109,6 +115,7 @@ class ICYStation extends Station {
                         var bitCrusher = new Converter();
                         vorbisDecoder.pipe(bitCrusher);
                         decoderGlobal = bitCrusher;
+                        formatGlobal = format;
                     });
                     stream.pipe(vorbisDecoder);
                 });
@@ -119,6 +126,7 @@ class ICYStation extends Station {
                 var lameDecoder = this.decoderIn;
                 lameDecoder.on('format', function (format) {
                     decoderGlobal = lameDecoder;
+                    formatGlobal = format;
                 });
                 break;
             case "audio/aacp":
@@ -132,6 +140,7 @@ class ICYStation extends Station {
                 parentObject.decoderOut = decoderGlobal;
                 parentObject.decoderOut.pipe(parentObject.volumeOut);
                 parentObject.ready = true;
+                parentObject.format = formatGlobal;
             } else {
                 setTimeout(() => {
                     awaitDecoder(parentObject);
@@ -216,6 +225,10 @@ class Static {
 
     parseMetadata = (metadata) => {
         this.metadata = metadata;
+    }
+
+    toJSON () {
+        return {type: "WhiteNoise"}
     }
 }
 
