@@ -26,7 +26,7 @@
 import mcpspi from 'mcp-spi-adc';
 //import gpio from 'rpi-gpio';
 
-const tuner = mcpspi.openMpc3004(1, err => {
+const tuner = mcpspi.open(1, err => {
     if (err) throw err;
   
     setInterval(_ => {
