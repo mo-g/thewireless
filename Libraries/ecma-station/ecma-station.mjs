@@ -16,29 +16,14 @@
  */
 
 
-import icyClient from 'ecma-iceclient';
-import hlxFileReader from 'hlx-file-reader';
-import vorbis from 'vorbis';
-import ogg from 'ogg';
-import lame from 'lame';
 import fs from 'fs';
-import getRandomValues from 'get-random-values';
-import { Readable, Transform } from 'stream';
-import { FileWriter } from 'wav';
-import MemoryStream from 'memorystream';
-import BitCrusher from 'pcm-bitdepth-converter';
-import Volume from 'pcm-volume';
 
-
-const Converter = BitCrusher.From32To16Bit;
 
 const StreamProtocol = {
-    ICY: "Uses the ShoutCAST ICY Protocol",
-    HLS: "Uses the Apple HLS Protocol",
-    Static: "Generates Pseudorandom White Noise"
+    InternetStation: "Any Internet Radio Protocol",
+    Static: "Pseudorandom White Noise File"
 };
 
-const NullOutput = fs.createWriteStream('/dev/null');
 
 class Station {
     constructor ({url = ""} = {}) {
@@ -46,146 +31,77 @@ class Station {
             throw "Null URL or URL not passed."
         }
         this.url = url;
-        this.volumeOut = new Volume();
     }
 
     static from (streamSpecs) {
         switch (streamSpecs.type)  {
-            case StreamProtocol.ICY:
-                return new ICYStation({url: streamSpecs.url});
-                break;
-            case StreamProtocol.HLS:
-                return new HLSStation({url: streamSpecs.url});
+            case StreamProtocol.InternetStation:
+                return new InternetStation({url: streamSpecs.url});
                 break;
             case StreamProtocol.Static:
-                return new Static();
+                return new Static({url: streamSpecs.url});
                 break;
             default:
                 throw "Unsupported protocol:", streamSpecs.type;
         };
     }
+
+    set player(player) {
+        this._player = player;
+    }
+
+    get player() {
+        return this._player;
+    }
+
+    play () {
+        //tell MPD to play
+
+        /*
+
+        Clear existing playlist.
+        Add station URL to playlist.
+        Play playlist.
+
+        */
+
+        this.player.api.playback.pause();
+        this.player.api.queue.clear();
+        this.player.api.queue.add(this.url);
+        this.player.api.playback.play();
+    }
+
+    crossfade () {
+        /* Upgraded version of play - needs to be written.
+            Add station URL to playlist.
+            Skip to next with crossfade.
+            Remove previous station from playlist.
+        
+        */
+    }
+
+    pause () {
+        this.player.api.playback.pause();
+    }
+
+    unpause () {
+        this.player.api.playback.play();
+    }
+
+    toJSON () {
+        return {type: "undefined", url: this.url};
+    }
 }
 
-class ICYStation extends Station {
+class InternetStation extends Station {
     constructor ({url = ""} = {}){
         super({url: url})
-
-        this.decoderIn = NullOutput
-        this.decoderOut = NullOutput
-        this.output = NullOutput;
-        this.source = null
-        this.ready = false;
-        this.metadata = null;
         console.log("Streaming from:", url)
-        icyClient.get(this.url, this.setupStream);
     }
 
-    setupStream  = (response) =>  {
-        // log the HTTP response headers
-        //console.error(response.headers);
-
-        if (!response.headers) {
-            throw "Not a valid ICY Stream!"
-        }
-
-        var uniformHeaders = {};
-        Object.keys(response.headers).forEach(function (key) {
-            uniformHeaders[key.toLowerCase()] = response.headers[key];
-        });
-
-        if (!('content-type' in uniformHeaders)) {
-            throw "Content-Type not specified.";
-        } else {
-            var codec = uniformHeaders['content-type'];
-        }
-        var decoderGlobal = null;
-        switch (codec) {
-            case "application/ogg":
-                console.log("VORBIS Stream");
-                this.decoderIn = new ogg.Decoder();
-                this.decoderIn.on('stream', function (stream) {
-                    var vorbisDecoder = new vorbis.Decoder();
-                    vorbisDecoder.on('format', function (format) {
-                        var bitCrusher = new Converter();
-                        vorbisDecoder.pipe(bitCrusher);
-                        decoderGlobal = bitCrusher;
-                    });
-                    stream.pipe(vorbisDecoder);
-                });
-                break;
-            case "audio/mpeg":
-                console.log("MPEG1_3 Stream");
-                this.decoderIn = new lame.Decoder();
-                var lameDecoder = this.decoderIn;
-                lameDecoder.on('format', function (format) {
-                    decoderGlobal = lameDecoder;
-                });
-                break;
-            case "audio/aacp":
-                throw "AAC not supported yet!";
-            default:
-                throw "Unsupported CODEC:", codec;
-        }
-
-        function awaitDecoder(parentObject) {
-            if (decoderGlobal) {
-                parentObject.decoderOut = decoderGlobal;
-                parentObject.decoderOut.pipe(parentObject.volumeOut);
-                parentObject.ready = true;
-            } else {
-                setTimeout(() => {
-                    awaitDecoder(parentObject);
-                }, 33);
-            }
-        };
-        awaitDecoder(this);
-        // log any "metadata" events that happen
-        response.on('metadata', this.parseMetadata);
-        this.source = response;
-        this.source.pipe(this.decoderIn)
+    toJSON () {
+        return {type: "InternetStation", url: this.url};
     }
-
-    play (speaker) {
-        this.volumeOut.pipe(speaker);
-    }
-
-    stop () {
-        this.volumeOut.unpipe();
-    }
-
-    set volume (value) {
-        this.volumeOut.setVolume(value);
-        return value;
-    }
-
-    parseMetadata = (metadata) => {
-        this.metadata = metadata;
-    }
-}
-
-class HLSStation extends Station {
-    constructor ({url = ""} = {}){
-        super({url: url})
-    }
-}
-
-
-/**
- * The generator class that produces the readable for Static
- */
-class WhiteNoise extends Readable {
-    constructor(sampleRate = 44100) {
-        super()
-        this.sampleRate = sampleRate;
-    }
-
-    _read(bytes) {
-        const buf = Buffer.alloc(bytes);
-        var chunk = buf.map(function () {return Math.random() * 255})
-        this.push(Buffer.from(chunk))
-    }
-
-
 }
 
 /**
@@ -193,30 +109,23 @@ class WhiteNoise extends Readable {
  * 
  * Need to find a way to refill the stream on demand with more static.
  */
-class Static {
-    constructor () {
-        this.source = new WhiteNoise();
-        this.volumeOut = new Volume();
-        this.source.pipe(this.volumeOut);
+class Static extends Station {
+    constructor ({url = ""} = {}) {
+        super({url: url})
         this.ready=true;
-    }
-
-    play (speaker) {
-        this.volumeOut.pipe(speaker);
-    }
-
-    stop () {
-        this.volumeOut.unpipe();
-    }
-
-    set volume (value) {
-        this.volumeOut.setVolume(value);
-        return value;
     }
 
     parseMetadata = (metadata) => {
         this.metadata = metadata;
     }
+
+    play (player) {
+        // Override to set loop.
+    }
+
+    toJSON () {
+        return {type: "Static"}
+    }
 }
 
-export { StreamProtocol, Station, NullOutput, Static };
+export { StreamProtocol, Station, InternetStation };

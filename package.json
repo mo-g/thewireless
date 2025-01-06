@@ -1,22 +1,12 @@
 {
   "name": "thewireless",
-  "version": "0.0.5",
-  "description": "A simple radio client intended for use on a Pi with analogue controls connected through MCP3x0x ADC's.",
+  "version": "0.0.6",
+  "description": "A simple radio client intended for use on a Pi with analogue controls connected through MCP3x0x ADC's. It acts as an MPD controller.",
   "main": "wirelessd.mjs",
   "dependencies": {
-    "ecma-iceclient": "github:mo-g/ecma-iceclient",
-    "express": "^4.19.2",
-    "get-random-values": "^2.0.0",
-    "hlx-file-reader": "0.0.14",
-    "lame": "github:mo-g/node-lame",
+    "express": "^5.0.1",
     "mcp-spi-adc": "^3.2.0",
-    "memorystream": "^0.3.1",
-    "ogg": "github:mo-g/node-ogg",
-    "pcm-bitdepth-converter": "github:mo-g/pcm-bitdepth-converter",
-    "pcm-volume": "^1.0.0",
-    "speaker-arm64": "^0.5.2",
-    "vorbis": "github:mo-g/node-vorbis",
-    "wav": "^1.0.2"
+    "mpd-api": "^1.1.2"
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
