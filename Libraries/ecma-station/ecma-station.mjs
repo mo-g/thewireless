@@ -80,14 +80,6 @@ class Station {
         */
     }
 
-    pause () {
-        this.player.api.playback.pause();
-    }
-
-    unpause () {
-        this.player.api.playback.play();
-    }
-
     toJSON () {
         return {type: "undefined", url: this.url};
     }
@@ -97,6 +89,11 @@ class InternetStation extends Station {
     constructor ({url = ""} = {}){
         super({url: url})
         console.log("Streaming from:", url)
+    }
+
+    play () {
+        this.player.api.playback.repeat(0)
+        super.play()
     }
 
     toJSON () {
@@ -119,8 +116,9 @@ class Static extends Station {
         this.metadata = metadata;
     }
 
-    play (player) {
-        // Override to set loop.
+    play () {
+        this.player.api.playback.repeat(1)
+        super.play()
     }
 
     toJSON () {

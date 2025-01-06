@@ -132,7 +132,7 @@ apiService.get('/play/:station', (request, responder) => {
         return responder.send([true]);
     };
 
-    liveStations[liveStation].pause();
+    mpdInstance.api.playback.pause();
     liveStation = station;
     return setTimeout((stationObject, responderObject) => {
         stationObject.play();
@@ -142,8 +142,7 @@ apiService.get('/play/:station', (request, responder) => {
 
 apiService.get('/play', (request, responder) => {
     if (liveStation) {
-        liveStations[liveStation].play();
-        return responder.send([true]);
+        return responder.send([mpdInstance.api.playback.play()]);
     }
     responder.status(404);
     return responder.send([false]);
@@ -153,9 +152,7 @@ apiService.get('/play', (request, responder) => {
  * Stop playback
  */
 apiService.get('/pause', (request, responder) => {
-    //responder.status(501)
-    liveStations[liveStation].pause();
-    //liveStation = null;
+    mpdInstance.api.playback.pause();
     return responder.send(false);
 });
 
