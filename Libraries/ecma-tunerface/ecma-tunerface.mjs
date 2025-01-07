@@ -22,7 +22,41 @@ import mcpspi from 'mcp-spi-adc';
 
 class Dial {
     constructor (pin) {
+        this.ready = false;
+        this._dial = mcpspi.openMcp3004(pin, err => this.handler.bind(this) );
+    }
 
+    startHandler (err) {
+        if (err) {
+            console.log(err);
+        } else {
+            this.ready = true;
+        }
+    }
+
+    readHandler (err, reading) {
+        if (err) {
+            console.log(err);
+        } else {
+            this.value = reading;
+        }
+    }
+
+    monitor () {
+        if (not(this.ready)) {
+            return false;
+        }
+        setInterval(_ => {
+            this._dial.read((err, reading) => this.readHandler.bind(this));
+          }, 50);
+    }
+
+    set value (value) {
+        this._value = value;
+    }
+
+    get value () {
+        return this._value;
     }
 }
 
@@ -38,6 +72,12 @@ class Tuner extends Dial {
     }
 }
 
+class FeedbackTuner extends Tuner {
+    constructor (pin) {
+        super(pin)
+    }
+}
+
 
 class Volume extends Dial {
     constructor (pin) {
@@ -46,4 +86,4 @@ class Volume extends Dial {
 }
 
 
-export { Band, Tuner, Volume };
+export { Reader, Band, Tuner, Volume };
