@@ -27,7 +27,7 @@
 //import gpio from 'rpi-gpio';
 import express from 'express';
 import { Station, InternetStation, StreamProtocol} from "./Libraries/ecma-station/ecma-station.mjs";
-import { Dials, Switches, NeedleServo, Stations } from './config.mjs';
+import { Dials, NeedleServo, Stations, Bands } from './config.mjs';
 import mpdapi from 'mpd-api';
 
 const apiPort = 1932; // Port on which thewireless listens for control commands.
