@@ -1,6 +1,6 @@
 {
     "name": "ecma-tunerface",
-    "version": "0.0.1",
+    "version": "0.0.2",
     "description": "A class to represent an internet radio physical user interface in ECMAScript.",
     "main": "ecma-tunerface.mjs",
     "dependencies": {
