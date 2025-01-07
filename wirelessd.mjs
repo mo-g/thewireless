@@ -27,7 +27,8 @@
 //import gpio from 'rpi-gpio';
 import express from 'express';
 import { Station, InternetStation, StreamProtocol} from "./Libraries/ecma-station/ecma-station.mjs";
-import { Dials, Switches, NeedleServo, Stations } from './config.mjs';
+import { Dial, VolumeDial} from "./Libraries/ecma-tunerface/ecma-tunerface.mjs";
+import { Dials, NeedleServo, Stations, Bands } from './config.mjs';
 import mpdapi from 'mpd-api';
 
 const apiPort = 1932; // Port on which thewireless listens for control commands.
@@ -162,6 +163,17 @@ apiService.put('/pause', (request, responder) => {
 apiService.listen(apiPort, () =>
     console.log(`Wireless control REST API now active on TCP port ${apiPort}!`),
 );
+
+var volumeDial = Dial.from(Dials.volume, mpdInstance.api.playback.setvol);
+
+var readingTest = false;
+var readingInterval = setInterval(_ => {
+    readingTest = volumeDial.monitor();
+    if (readingTest == true) {
+        clearInterval(readingInterval);
+    }
+}, 100);
+
 
 
 
