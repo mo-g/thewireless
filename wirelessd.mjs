@@ -44,7 +44,6 @@ const mpdInstance = await mpdapi.connect(mpdConfig);
  */
 var liveStations = {};
 for (const stationName of Object.keys(Stations)) {
-    console.log(stationName);
     liveStations[stationName] = Station.from(Stations[stationName]);
     liveStations[stationName].player = mpdInstance;
 };
@@ -57,11 +56,24 @@ var apiService = new express();
 apiService.use(express.json());
 
 apiService.get('/', (request, responder) => {
-    return responder.send(["stations", "play"]);
+    var hostname = request.hostname;
+    return responder.send(
+        {"links": {
+            "stations": "http://"+hostname+":"+apiPort+"/"+"stations",
+            "play": "http://"+hostname+":"+apiPort+"/"+"play",
+            "pause": "http://"+hostname+":"+apiPort+"/"+"pause",
+            "volume": "http://"+hostname+":"+apiPort+"/"+"volume"
+        }
+    });
 });
 
 apiService.get('/stations', (request, responder) => {
-    return responder.send(Object.keys(liveStations));
+    var hostname = request.hostname;
+    var stationLinks = {};
+    Object.keys(liveStations).forEach(function (station) {
+        stationLinks[station] = "http://"+hostname+":"+apiPort+"/"+"stations/"+station
+      })
+    return responder.send({"links": stationLinks});
 });
 
 apiService.get('/stations/:station', (request, responder) => {
@@ -74,84 +86,75 @@ apiService.get('/stations/:station', (request, responder) => {
     return responder.send("Station", station, "not known. Load /stations endpoint for current list.");
 });
 
-/*apiService.get('/stations/:station/:volume', (request, responder) => {
-    var station = request.params.station
-    if (!(station in liveStations)) {
-        console.log("Station", station, "not currently loaded.");
-        responder.status(404);
-        return responder.send("Station", station, "not known. Load /stations endpoint for current list.");
-    };
-    var volume = parseFloat(request.params.volume);
-    liveStations[station].volume = volume;
-    return responder.send(true);
-
-});*/
-
-apiService.get('/speaker', (request, responder) => {
-    return responder.send(mpdInstance);
-});
-
 apiService.get('/volume', (request, responder) => {
-    var volume = mpdInstance.api.playback.getvol()
-    return responder.send({"volume": volume});
+    responder.status(501)
+    return responder.send(false);
 });
 
-apiService.get('/volume/:volume', (request, responder) => {
-    var volume = parseInt(request.params.volume);
+apiService.put('/volume', (request, responder) => {
+    var volume = parseInt(request.body.volume);
     if (volume >= 0 & volume <= 100) {
-
+        console.log("Setting volume to:", volume);
+        mpdInstance.api.playback.setvol(volume)
+        return responder.send(true);
     }
-    mpdInstance.api.playback.setvol(volume)
-    return responder.send(true);
+    responder.status(422)
+    return responder.send(false)
 });
 
 /**
  * Get the currently playing station, and preferably - the currently playing track from supporting stations.
  */
-apiService.get('/status', (request, responder) => {
+
+apiService.get('/play', (request, responder) => {
     //responder.status(501)
     return responder.send([liveStation]);
 });
-/**
- * This should actually be a put, without :station, but I'm being lazy.
- */
-apiService.get('/play/:station', (request, responder) => {
-    var station = request.params.station
-    if (!(station in liveStations)) {
-        console.log("Station", station, "not currently loaded.");
-        responder.status(404);
-        return responder.send("Station " + station + " not known. Load /stations endpoint for current list.");
-    };
 
-    if (!(liveStation)) {
-        liveStation = station;
-        liveStations[station].play();
-    };
-
-    if (liveStation == station) {
-        return responder.send([true]);
-    };
-
-    mpdInstance.api.playback.pause();
-    liveStation = station;
-    return setTimeout((stationObject, responderObject) => {
-        stationObject.play();
-        responderObject.send([true]);
-    }, 500, liveStations[station], responder);
-});
-
-apiService.get('/play', (request, responder) => {
-    if (liveStation) {
-        return responder.send([mpdInstance.api.playback.play()]);
+apiService.put('/play/', (request, responder) => {
+    if (request.body === undefined) {
+        request.body = {};
     }
-    responder.status(404);
-    return responder.send([false]);
+    if (Object.keys(request.body).includes("station")) {
+        var station = request.body.station
+        if (!(station in liveStations)) {
+            console.log("Station", station, "not currently loaded.");
+            responder.status(404);
+            return responder.send(false);
+        };
+
+        if (!(liveStation)) {
+            liveStation = station;
+            liveStations[station].play();
+        };
+
+        if (liveStation == station) {
+            return responder.send([true]);
+        };
+
+        mpdInstance.api.playback.pause();
+        console.log("Starting playback of:", station)
+        liveStation = station;
+        return setTimeout((stationObject, responderObject) => {
+            stationObject.play();
+            responderObject.send([true]);
+        }, 500, liveStations[station], responder);
+    } else {
+        if (liveStation) {
+            console.log("Resuming Playback");
+            return responder.send([mpdInstance.api.playback.play()]);
+        }
+        responder.status(404);
+        return responder.send([false]);
+    };
 });
+
 
 /**
  * Stop playback
  */
-apiService.get('/pause', (request, responder) => {
+apiService.put('/pause', (request, responder) => {
+    console.log("Stopping Playback");
     mpdInstance.api.playback.pause();
     return responder.send(false);
 });
