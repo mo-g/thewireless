@@ -1,6 +1,6 @@
 {
   "name": "thewireless",
-  "version": "0.0.9",
+  "version": "0.1.0",
   "description": "A simple radio client intended for use on a Pi with analogue controls connected through MCP3x0x ADC's. It acts as an MPD controller.",
   "main": "wirelessd.mjs",
   "dependencies": {

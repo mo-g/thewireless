@@ -26,8 +26,8 @@
 //import mcpspi from 'mcp-spi-adc';
 //import gpio from 'rpi-gpio';
 import express from 'express';
-import { Station, InternetStation, StreamProtocol} from "./Libraries/ecma-station/ecma-station.mjs";
-import { Dial, VolumeDial} from "./Libraries/ecma-tunerface/ecma-tunerface.mjs";
+import { Station } from "./Libraries/ecma-station/ecma-station.mjs";
+import { BandAction, Dial} from "./Libraries/ecma-tunerface/ecma-tunerface.mjs";
 import { Dials, Stations, Bands } from './config.mjs';
 import mpdapi from 'mpd-api';
 
@@ -48,6 +48,7 @@ for (const stationName of Object.keys(Stations)) {
     liveStations[stationName] = Station.from(Stations[stationName]);
     liveStations[stationName].player = mpdInstance;
 };
+
 var liveStation = null;
 
 /**
@@ -87,9 +88,9 @@ apiService.get('/stations/:station', (request, responder) => {
     return responder.send("Station", station, "not known. Load /stations endpoint for current list.");
 });
 
-apiService.get('/volume', (request, responder) => {
-    responder.status(501)
-    return responder.send(false);
+apiService.get('/volume', async (request, responder) => {
+    var volume = await mpdInstance.api.playback.getvol();
+    return responder.send(volume.volume);
 });
 
 apiService.put('/volume', (request, responder) => {
@@ -139,7 +140,7 @@ apiService.put('/play/', (request, responder) => {
         return setTimeout((stationObject, responderObject) => {
             stationObject.play();
             responderObject.send([true]);
-        }, 500, liveStations[station], responder);
+        }, 50, liveStations[station], responder);
     } else {
         if (liveStation) {
             console.log("Resuming Playback");
@@ -164,23 +165,60 @@ apiService.listen(apiPort, () =>
     console.log(`Wireless control REST API now active on TCP port ${apiPort}!`),
 );
 
-var volumeDial = Dial.from(Dials.volume, mpdInstance.api.playback.setvol);
+function adjustTuner (frequency) {
+    var station = "static";
+    for (const stationName of Object.keys(liveStations)) {
+        if ((frequency <= Stations[stationName].frequencyMax) && (frequency >= Stations[stationName].frequencyMin)) {
+            station = stationName;
+            break;
+        };
+    };
 
-var readingTest = false;
-var readingInterval = setInterval(_ => {
-    readingTest = volumeDial.monitor();
-    if (readingTest == true) {
-        clearInterval(readingInterval);
+    if (liveStation != station) {
+        mpdInstance.api.playback.pause();
+        console.log("Starting playback of:", station)
+        liveStation = station;
+        return setTimeout((stationObject) => {
+            stationObject.play();
+        }, 50, liveStations[station]);
     }
-}, 100);
+}
+
+var bandActions = {}
+bandActions[BandAction.RadioPlay] = function () {mpdInstance.api.playback.play()};
+bandActions[BandAction.RadioPause] = function () {mpdInstance.api.playback.pause()};
 
 
+function adjustBand (frequency) {
+    var task = function () {}; // Do nothing!
+    for (const bandName of Object.keys(Bands)) {
+        if ((frequency <= Bands[bandName].frequencyMax) && (frequency >= Bands[bandName].frequencyMin)) {
+            task = bandActions[Bands[bandName].type]
+            break;
+        };
+    };
 
+    task()
+}
 
-/**
- * Do something useful:
- */
+var activeDials = {};
+var readingTests = {};
+var readingIntervals = {};
 
+const dialCallbacks = {
+    band: adjustBand,
+    volume: mpdInstance.api.playback.setvol,
+    tuner: adjustTuner
+}
 
-
-//var interStation = new Static();
+for (const dialName of Object.keys(Dials)) {
+    readingTests[dialName] = false;
+    activeDials[dialName] = Dial.from(Dials[dialName], dialCallbacks[dialName]);
+    readingIntervals[dialName] = setInterval(_ => {
+        readingTests[dialName] = activeDials[dialName].monitor();
+        if (readingTests[dialName] == true) {
+            console.log("Monitoring dial:", dialName);
+            clearInterval(readingIntervals[dialName]);
+        }
+    }, 50);
+};

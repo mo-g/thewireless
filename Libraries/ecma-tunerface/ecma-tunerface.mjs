@@ -18,7 +18,6 @@
 
 import mcpspi from 'mcp-spi-adc';
 
-const JITTERGAP = 2;
 
 const DialType = {
     Volume: "Controls the volume (loudness) of the speaker output.",
@@ -36,29 +35,33 @@ const BandAction = {
 
 
 class Dial {
-    constructor (adcPin, callback) {
+    constructor (adcPin, callback, jitter) {
+        this._notice = "New Frequency:"
+        this._jitter = jitter;
         this.ready = true;
         this.interval = null;
         this._value = 0;
         this.callback = callback;
+        this._firstValue = true;
         this._dial = mcpspi.openMcp3004(adcPin, err => {this.startHandler(err)} );
     }
 
     static from (dialSpecs, callback) {
         var type = dialSpecs.type;
         var channel = dialSpecs.channel;
+        var jitter = dialSpecs.jitter;
         switch (dialSpecs.type)  {
             case DialType.Volume:
-                return new VolumeDial(channel, callback);
+                return new VolumeDial(channel, callback, jitter);
                 break;
             case DialType.Tuner:
                 if (dialSpecs.activeNeedle) {
-                    return new ActiveTunerDial(channel, callback);
+                    return new ActiveTunerDial(channel, callback, jitter);
                 }
-                return new TunerDial(channel, callback);
+                return new TunerDial(channel, callback, jitter);
                 break;
             case DialType.Band:
-                return new BandDial(channel, callback);
+                return new BandDial(channel, callback, jitter);
                 break;
             default:
                 throw "Unsupported dial type:", type;
@@ -73,13 +76,22 @@ class Dial {
     }
 
     readHandler (err, reading) {
-        console.log("This is the Super Handler. Something has gone wrong!")
         if (err) {
             console.log(err);
-        } else {
-            //console.log(value);
-            //this._value = reading;
-        };
+            return false;
+        }
+
+        var frequency = Math.round(reading.rawValue/4);
+        if ((frequency > (this._value + this._jitter)) || (frequency < (this._value - this._jitter))) {
+            this._value = frequency;
+            if (this._firstValue) {
+                this._firstValue = false;
+            } else {
+                console.log(this._notice, frequency+"kHz");
+                this.callback(frequency);
+            }
+        }
+        return true;
     }
 
     monitor () {
@@ -88,7 +100,7 @@ class Dial {
         };
         this.interval = setInterval(_ => {
             this._dial.read((err, reading) => { this.readHandler.bind(this); this.readHandler(err, reading) });
-          }, 500);
+          }, 50);
           return true;
     }
 
@@ -102,20 +114,37 @@ class Dial {
 }
 
 class BandDial extends Dial {
-    constructor (adcPin, callback) {
-        super(adcPin, callback);
+    constructor (adcPin, jitter, callback) {
+        super(adcPin, jitter, callback)
+        this._notice = "New Band Frequency:"
+    }
+
+    readHandler (err, reading) {
+        if (err) {
+            console.log(err);
+            return false;
+        }
+
+        var frequency = Math.round(reading.rawValue/4);
+        if ((frequency > (this._value + this._jitter)) || (frequency < (this._value - this._jitter))) {
+            this._value = frequency;
+            console.log(this._notice, frequency+"kHz");
+            this.callback(frequency);
+        }
+        return true;
     }
 }
 
 class TunerDial extends Dial {
-    constructor (adcPin, callback) {
-        super(adcPin, callback);
+    constructor (adcPin, jitter, callback) {
+        super(adcPin, jitter, callback)
+        this._notice = "New Tuner Frequency:"
     }
 }
 
-class ActiveTunerDial extends Dial {
-    constructor (adcPin, callback) {
-        super(adcPin, callback);
+class ActiveTunerDial extends TunerDial {
+    constructor (adcPin, jitter, callback, servoPin) {
+        super(adcPin, jitter, callback)
         this.servoPin = servoPin;
     }
 
@@ -129,8 +158,8 @@ class ActiveTunerDial extends Dial {
 
 
 class VolumeDial extends Dial {
-    constructor (adcPin, callback) {
-        super(adcPin, callback)
+    constructor (adcPin, jitter, callback) {
+        super(adcPin, jitter, callback)
     }
 
     readHandler (err, reading) {
@@ -140,23 +169,17 @@ class VolumeDial extends Dial {
         }
 
         var percent = Math.round(reading.rawValue/1024*100);
-        if ((percent > (this._value + JITTERGAP)) || (percent < (this._value - JITTERGAP))) {
-            console.log("New volume:", percent+"%");
+        if ((percent > (this._value + this._jitter)) || (percent < (this._value - this._jitter))) {
             this._value = percent;
-            this.callback(percent);
+            if (this._firstValue) {
+                this._firstValue = false;
+            } else {
+                console.log("New volume:", percent+"%");
+                this.callback(percent);
+            }
         }
         return true;
     }
-}
-
-class Band {
-    constructor () {
-
-    }
-    static from (bandSpecs) {
-
-    }
-
 }
 
 
