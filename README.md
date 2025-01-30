@@ -24,4 +24,40 @@ If you're running a headless raspbian-lite pi, this may well be all you need to 
 sudo apt install mpc
 ```
 
-To get MPC, the Media Player Controller - which you can use with any audio file to test your audio settings from  an ssh terminal - in order to rule out 
+To get MPC, the Media Player Controller - which you can use with any audio file to test your audio settings from  an ssh terminal - in order to rule out issues with your playback before running code. It's also useful for getting debug messages if you have a bad URL.
+
+## Pirate Audio's 3W SHIM!
+
+This code was written to work on a Pi - using a custom (but super simple) control board, and Pirate Audio's 3W SHIM amplifier - for a home/office scale mono radio with about five parts. There's a big issue with that SHIM though - it doesn't have a hardware volume control. This can be worked around in software, and to make it easy, here's some sample alsa/mpd config that should work.
+
+Asound.conf:
+```
+pcm.piratehat {
+	type softvol
+	slave {
+		pcm "hw:0"
+	}
+	control {
+		name "PCM"
+		card 0
+	}
+}
+```
+
+mpd.conf (add this below the sample ALSA config):
+```
+audio_output {
+	type		"alsa"
+	name		"Pirate Audio Hat"
+	device		"piratehat"
+	mixer_type      "software"
+	mixer_device	"pcm"
+}
+```
+
+You will probably also want to modify /boot/firmware/config.txt as well to enable your SHIM! If you're using a Pi with built-in audio (i.e. not a Zero), you'll also want to comment-out the built-in audio. It should look like this:
+
+```
+#dtparam=audio=on
+dtoverlay=hifiberry-dac
+```
