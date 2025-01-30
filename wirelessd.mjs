@@ -28,7 +28,7 @@
 import express from 'express';
 import { Station, InternetStation, StreamProtocol} from "./Libraries/ecma-station/ecma-station.mjs";
 import { Dial, VolumeDial} from "./Libraries/ecma-tunerface/ecma-tunerface.mjs";
-import { Dials, NeedleServo, Stations, Bands } from './config.mjs';
+import { Dials, Stations, Bands } from './config.mjs';
 import mpdapi from 'mpd-api';
 
 const apiPort = 1932; // Port on which thewireless listens for control commands.

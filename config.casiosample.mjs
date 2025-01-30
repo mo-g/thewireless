@@ -18,10 +18,10 @@ const Dials = {
         min: 0.01,
         max: 1,
         channel: 1,
-        activeNeedle: {
+        activeNeedle: null /*{
             ioPin: 7,
             // Need to define the movement mapping here somehow.
-        }
+        }*/
     },
     volume: {
         type: DialType.Volume,
