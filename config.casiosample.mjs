@@ -8,12 +8,14 @@ import { DialType, BandAction } from "./Libraries/ecma-tunerface/ecma-tunerface.
 
 const Dials = {
     band: {
+        jitter: 5,
         type: DialType.Band,
         deadbandLimit: 0.01,
         maximum: 1,
         channel: 0
     },
     tuner: {
+        jitter: 5,
         type: DialType.Tuner,
         min: 0.01,
         max: 1,
@@ -24,6 +26,7 @@ const Dials = {
         }*/
     },
     volume: {
+        jitter: 5,
         type: DialType.Volume,
         min: 0.01,
         trigger: 0.1,
@@ -74,17 +77,19 @@ const Stations = {
     }
 };
 
-// 
+/**
+ * Define the "bands" (really, control states) for the Band dial.
+ */
 const Bands = {
     on: {
         type: BandAction.RadioPlay,
         "frequencyMin": 0,
-        "frequencyMax": 45,
+        "frequencyMax": 100,
     },
     off: {
         type: BandAction.RadioPause,
-        "frequencyMin": 55,
-        "frequencyMax": 100,
+        "frequencyMin": 150,
+        "frequencyMax": 256,
     }
 }
 
