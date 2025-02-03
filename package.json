@@ -7,7 +7,7 @@
     "express": "^5.0.1",
     "mcp-spi-adc": "^3.2.0",
     "mpd-api": "^1.1.2",
-    "ecma-nodevol": "mo-g/ecma-alsavol"
+    "ecma-nodevol": "mo-g/ecma-alsavol#wrongcard"
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
