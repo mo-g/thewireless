@@ -35,7 +35,7 @@ import { volume } from 'ecma-nodevol';
 
 const { getVolume, setVolume, isMuted, setMute } = volume;
 const apiPort = 1932; // Port on which thewireless listens for control commands.
-console.log(getVolume())
+
 
 // Settings for the default MPD player. Should be moved to config, and have support for multiple players added (without sync).
 const mpdConfig = {
@@ -93,15 +93,15 @@ apiService.get('/stations/:station', (request, responder) => {
 });
 
 apiService.get('/volume', async (request, responder) => {
-    var volume = await mpdInstance.api.playback.getvol();
-    return responder.send(volume.volume);
+    var volume = Math.floor(getVolume() * 100);
+    return responder.send(volume);
 });
 
 apiService.put('/volume', (request, responder) => {
     var volume = parseInt(request.body.volume);
     if (volume >= 0 & volume <= 100) {
         console.log("Setting volume to:", volume);
-        mpdInstance.api.playback.setvol(volume)
+        setVolume(volume/100)
         return responder.send(true);
     }
     responder.status(422)
@@ -205,13 +205,20 @@ function adjustBand (frequency) {
     task()
 }
 
+function adjustVolume (volume) {
+    if (volume >= 0 & volume <= 100) {
+        console.log("Setting volume to:", volume);
+        setVolume(volume/100)
+    };
+}
+
 var activeDials = {};
 var readingTests = {};
 var readingIntervals = {};
 
 const dialCallbacks = {
     band: adjustBand,
-    volume: mpdInstance.api.playback.setvol,
+    volume: adjustVolume,
     tuner: adjustTuner
 }
 
