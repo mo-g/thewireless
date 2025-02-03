@@ -32,7 +32,10 @@ import { Dials, Stations, Bands } from './config.mjs';
 import mpdapi from 'mpd-api';
 import { volume } from 'ecma-nodevol';
 
+
+const { getVolume, setVolume, isMuted, setMute } = volume;
 const apiPort = 1932; // Port on which thewireless listens for control commands.
+console.log(getVolume())
 
 // Settings for the default MPD player. Should be moved to config, and have support for multiple players added (without sync).
 const mpdConfig = {
