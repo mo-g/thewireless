@@ -7,7 +7,7 @@
     "express": "^5.0.1",
     "mcp-spi-adc": "^3.2.0",
     "mpd-api": "^1.1.2",
-    "ecma-nodevol": "github/ecma-alsavol#welcometo2025"
+    "ecma-nodevol": "mo-g/ecma-alsavol#welcometo2025"
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
