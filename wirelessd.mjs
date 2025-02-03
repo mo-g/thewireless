@@ -30,6 +30,7 @@ import { Station } from "./Libraries/ecma-station/ecma-station.mjs";
 import { BandAction, Dial} from "./Libraries/ecma-tunerface/ecma-tunerface.mjs";
 import { Dials, Stations, Bands } from './config.mjs';
 import mpdapi from 'mpd-api';
+import { volume } from 'ecma-nodevol';
 
 const apiPort = 1932; // Port on which thewireless listens for control commands.
 
